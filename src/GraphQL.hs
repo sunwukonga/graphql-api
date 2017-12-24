@@ -113,8 +113,7 @@ makeSchema = first SchemaError (Schema.makeSchema <$> getDefinition @api)
 
 -- | Make Document from raw query
 makeDocument
-  :: forall api. (HasObjectDefinition api)
-  => Text
+  :: Text
   -> Either QueryError AST.QueryDocument
 makeDocument query =
   case first ParseError (parseQuery query) of
