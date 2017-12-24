@@ -14,12 +14,12 @@ module GraphQL
   , Response(..)
     -- * Preparing queries then running them
   , makeSchema
-  , makeDocument
   , compileQuery
   , executeQuery
   , QueryError
   , Schema
   , VariableValues
+  , validateDocument
   , Value
   ) where
 
@@ -49,6 +49,7 @@ import GraphQL.Internal.Output
   ( GraphQLError(..)
   , Response(..)
   , singleError
+  , Errors
   )
 import GraphQL.Internal.Schema (Schema)
 import qualified GraphQL.Internal.Schema as Schema
@@ -111,14 +112,27 @@ executeQuery handler document name variables =
 makeSchema :: forall api. HasObjectDefinition api => Either QueryError Schema
 makeSchema = first SchemaError (Schema.makeSchema <$> getDefinition @api)
 
--- | Make Document from raw query
-makeDocument
+-- | Playing with this one...
+-- | Parse Document from raw query
+parseDocument
   :: Text
   -> Either QueryError AST.QueryDocument
-makeDocument query =
+parseDocument query =
   case first ParseError (parseQuery query) of
     Left err -> Left err
     Right document -> Right document
+
+-- | Validate a GraphQL query.
+--
+-- Compiles and validates executes a GraphQL query.
+validateDocument
+  :: forall api. (HasObjectDefinition api)
+  => Text -- ^ The text of a query document.
+  -> Either Response (QueryDocument VariableValue)  -- ^ The outcome of validation
+validateDocument query =
+  case makeSchema @api >>= flip compileQuery query of
+    Left err -> Left (PreExecutionFailure (toError err :| []))
+    Right validDocument -> Right validDocument
 
 -- | Interpet a GraphQL query.
 --
