@@ -14,6 +14,7 @@ module GraphQL
   , Response(..)
     -- * Preparing queries then running them
   , makeSchema
+  , makeDocument
   , compileQuery
   , executeQuery
   , QueryError
@@ -109,6 +110,16 @@ executeQuery handler document name variables =
 -- | Create a GraphQL schema.
 makeSchema :: forall api. HasObjectDefinition api => Either QueryError Schema
 makeSchema = first SchemaError (Schema.makeSchema <$> getDefinition @api)
+
+-- | Make Document from raw query
+makeDocument
+  :: forall api. (HasResolver api, HasObjectDefinition api)
+  => Text
+  -> Maybe Document
+makeDocument query =
+  case makeSchema @api >>= flip compileQuery query of
+    Left err -> pure (PreExecutionFailure (toError err :| []))
+    Right document -> return document
 
 -- | Interpet a GraphQL query.
 --
