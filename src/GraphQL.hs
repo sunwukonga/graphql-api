@@ -126,11 +126,13 @@ parseDocument query =
 --
 -- Compiles and validates executes a GraphQL query.
 validateDocument
-  :: forall api. (HasObjectDefinition api)
-  => Text -- ^ The text of a query document.
+--  :: forall api. (HasObjectDefinition api)
+--  => Text -- ^ The text of a query document.
+  :: Text -- ^ The text of a query document.
   -> Either Response (QueryDocument VariableValue)  -- ^ The outcome of validation
 validateDocument query =
-  case makeSchema @api >>= flip compileQuery query of
+  case makeSchema >>= flip compileQuery query of
+--  case makeSchema @api >>= flip compileQuery query of
     Left err -> Left (PreExecutionFailure (toError err :| []))
     Right validDocument -> Right validDocument
 
