@@ -123,7 +123,7 @@ getSelectionSet (Mutation _ _ ss) = ss
 
 -- | Get VariableDefinitions for named operation || only operation || else return emptyVariableDefinitions
 -- | Purpose: supply aeson parser with context for coercion of the values from variableValues
-getVariableDefinitions :: Maybe Name -> Maybe (QueryDocument VariableValue) -> VariableDefinitions
+getVariableDefinitions :: Maybe (QueryDocument VariableValue) -> Maybe Name -> VariableDefinitions
 getVariableDefinitions (Just (LoneAnonymousOperation (Query variableDefinitions _ _))) _ = variableDefinitions
 getVariableDefinitions (Just (LoneAnonymousOperation (Mutation variableDefinitions _ _))) _ = variableDefinitions
 getVariableDefinitions (Just (MultipleOperations (mapOfOperations))) (Just name) =
