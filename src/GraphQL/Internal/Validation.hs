@@ -56,6 +56,7 @@ module GraphQL.Internal.Validation
   , getResponseKey
   -- * Exported for testing
   , findDuplicates
+  , getVariableDefinitions
   ) where
 
 import Protolude hiding ((<>))
@@ -119,6 +120,26 @@ instance Traversable Operation where
 getSelectionSet :: Operation value -> SelectionSetByType value
 getSelectionSet (Query _ _ ss) = ss
 getSelectionSet (Mutation _ _ ss) = ss
+
+-- | Get VariableDefinitions for named operation || only operation || else return emptyVariableDefinitions
+-- | Purpose: supply aeson parser with context for coercion of the values from variableValues
+getVariableDefinitions :: Maybe (QueryDocument VariableValue) -> Maybe Name -> VariableDefinitions
+getVariableDefinitions (Just (LoneAnonymousOperation (Query variableDefinitions _ _))) _ = variableDefinitions
+getVariableDefinitions (Just (LoneAnonymousOperation (Mutation variableDefinitions _ _))) _ = variableDefinitions
+getVariableDefinitions (Just (MultipleOperations (mapOfOperations))) (Just name) =
+  case Map.lookup name mapOfOperations of
+    Just (Query variableDefinitions _ _) -> variableDefinitions
+    Just (Mutation variableDefinitions _ _) -> variableDefinitions
+    Nothing -> emptyVariableDefinitions
+getVariableDefinitions (Just (MultipleOperations (mapOfOperations))) Nothing =
+  case ((Map.size mapOfOperations) == 1) of
+    True ->
+      case (Map.elemAt 1 mapOfOperations) of
+        (_, (Query variableDefinitions _ _)) -> variableDefinitions
+        (_, (Mutation variableDefinitions _ _)) -> variableDefinitions
+        (_, _) -> emptyVariableDefinitions
+    False -> emptyVariableDefinitions
+getVariableDefinitions Nothing _ = emptyVariableDefinitions
 
 -- | Type alias for 'Query' and 'Mutation' constructors of 'Operation'.
 type OperationType value = VariableDefinitions -> Directives value -> SelectionSetByType value -> Operation value
