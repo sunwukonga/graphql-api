@@ -179,6 +179,9 @@ instance Defaultable (Maybe a) where
   -- | The default for @Maybe a@ is @Nothing@.
   defaultFor _ = pure Nothing
 
+instance Defaultable [a]
+  defaultFor _ = []
+
 instance forall m. (Applicative m) => HasResolver m Int32 where
   type Handler m Int32 = m Int32
   resolve handler Nothing = map (ok . toValue) handler
