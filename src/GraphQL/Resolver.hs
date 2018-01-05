@@ -180,7 +180,7 @@ instance Defaultable (Maybe a) where
   defaultFor _ = pure Nothing
 
 instance Defaultable [a]
-  defaultFor _ = []
+--  defaultFor _ = []
 
 instance forall m. (Applicative m) => HasResolver m Int32 where
   type Handler m Int32 = m Int32
